@@ -1,0 +1,36 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: kubernetes-example-application
+build:
+  platforms: ["linux/arm64"]
+  artifacts:
+    - image: ghcr.io/gawbul/kubernetes-example-application
+      docker:
+        dockerfile: Dockerfile
+        buildArgs:
+          TARGETOS: linux
+deploy:
+  helm:
+    releases:
+      - name: kubernetes-example-application
+        chartPath: helm-chart/
+        valuesFiles:
+          - environments/common.values.yaml
+          - environments/dev.values.yaml
+        setValueTemplates:
+          global.image.registry: "{{.IMAGE_REPO_ghcr_io_gawbul_kubernetes_example_application}}"
+          global.image.tag: "{{.IMAGE_TAG_ghcr_io_gawbul_kubernetes_example_application}}@{{.IMAGE_DIGEST_ghcr_io_gawbul_kubernetes_example_application}}"
+test:
+  - image: ghcr.io/gawbul/kubernetes-example-application
+    structureTests:
+      - './structure-tests/*'
+verify:
+  - name: kubernetes-example-application-health-check
+    container:
+      name: kubernetes-example-application-health-check
+      image: alpine/curl:8.14.1
+      command: ['curl']
+      args: ['-s', 'http://kubernetes-example-application.default.svc.cluster.local:8080']
+    executionMode:
+      kubernetesCluster: {}

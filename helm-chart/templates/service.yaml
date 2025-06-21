@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "example-application.fullname" . }}
+  namespace: {{.Release.Namespace}}
+  {{- with .Values.application.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "example-application.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.application.service.type }}
+  ports:
+  - port: {{ .Values.application.service.port }}
+    targetPort: {{ .Values.application.service.targetPort }}
+    protocol: TCP
+    name: {{ .Values.application.service.portName }}
+  selector:
+    {{- include "example-application.selectorLabels" . | nindent 4 }}

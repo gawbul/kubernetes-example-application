@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "example-application.fullname" . }}
+  namespace: {{.Release.Namespace}}
+  {{- with .Values.application.deploymentAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "example-application.labels" . | nindent 4 }}
+    {{- if .Values.application.labels }}
+    {{- toYaml .Values.application.labels | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.application.replicas }}
+  selector:
+    matchLabels:
+      {{- include "example-application.selectorLabels" . | nindent 6 }}
+  {{- with .Values.application.deploymentStrategy }}
+  strategy:
+    {{- toYaml . | trim | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      {{- with .Values.application.annotations }}
+      annotations:
+        {{- toYaml . | nindent 12 }}
+      {{- end }}
+      labels:
+        {{- include "example-application.labels" . | nindent 8 }}
+        {{- if .Values.application.labels }}
+        {{- toYaml .Values.application.labels | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "example-application.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.application.automountServiceAccountToken }}
+      {{- if .Values.application.podSecurityContext }}
+      securityContext:
+        {{- .Values.application.podSecurityContext | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: example-application
+        image: "{{ .Values.global.image.registry }}:{{ .Values.global.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        {{- if .Values.application.containerSecurityContext }}
+        securityContext:
+          {{- toYaml .Values.application.containerSecurityContext | nindent 10 }}
+        {{- end}}
+        env:
+        - name: ENV
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "example-application.fullname" . }}-config
+              key: env
+        {{- if .Values.application.extraEnvironmentVars -}}
+        {{- range $key, $value := .Values.application.extraEnvironmentVars }}
+        - name: {{ printf "%s" $key | replace "." "_" | upper | quote }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.application.extraEnvironmentSecrets -}}
+        {{- range $key, $value := .Values.application.extraEnvironmentSecrets }}
+        - name: {{ printf "%s" $key | replace "." "_" | upper | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $value.secretName }}
+              key: {{ $value.secretKey }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.application.extraVolumeMounts }}
+        volumeMounts:
+          {{ toYaml .Values.application.extraVolumeMounts | nindent 10 }}
+        {{- end }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.application.service.targetPort }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.application.service.targetPort }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          {{- toYaml .Values.application.resources | nindent 10 }}
+        ports:
+        - name: {{ .Values.application.service.portName }}
+          containerPort: {{ .Values.application.service.targetPort }}
+          protocol: TCP
+      {{- with .Values.application.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.application.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.application.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.application.extraVolumes }}
+      volumes:
+        {{- toYaml .Values.application.extraVolumes | nindent 6 }}
+      {{- end }}

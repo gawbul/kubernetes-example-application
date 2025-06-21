@@ -1,0 +1,13 @@
+apiVersion: v2
+name: kubernetes-example-application
+version: 0.0.1
+kubeVersion: ">= 1.33.0"
+description: A Helm chart to install the Kubernetes Example Application
+type: application
+home: https://github.com/gawbul/kubernetes-example-application
+sources:
+  - https://github.com/gawbul/kubernetes-example-application
+maintainers:
+  - name: Steve Moss
+    email: gawbul@gmail.com
+appVersion: 0.0.1

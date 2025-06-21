@@ -1,0 +1,54 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=30000']
+      - id: check-yaml
+        exclude: helm-chart/
+      - id: check-json
+      - id: fix-byte-order-marker
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+      - id: no-commit-to-branch
+        args: [--branch, main]
+  - repo: https://github.com/norwoodj/helm-docs
+    rev: v1.14.2
+    hooks:
+      - id: helm-docs
+        args:
+          - --chart-search-root=helm-chart
+  - repo: https://github.com/bridgecrewio/checkov.git
+    rev: 3.2.443
+    hooks:
+      - id: checkov
+        entry: checkov --directory helm-chart --framework helm --skip-check CKV_K8S_21,CKV_K8S_11,CKV_K8S_43,CKV2_K8S_6,CKV_K8S_35 --var-file helm-chart/values.yaml
+  - repo: https://github.com/woodruffw/zizmor-pre-commit
+    rev: v1.9.0
+    hooks:
+      - id: zizmor
+  - repo: local
+    hooks:
+      - id: lint
+        name: lint
+        entry: mise run lint
+        language: system
+        types: [file]
+        pass_filenames: false
+      - id: test
+        name: test
+        entry: mise run test
+        language: system
+        types: [file]
+        pass_filenames: false
+      - id: detect-secrets
+        name: Detect secrets
+        language: python
+        entry: detect-secrets-hook
+        args: ['--baseline', '.secrets.baseline']
+        additional_dependencies: ['detect-secrets', 'gibberish-detector']
