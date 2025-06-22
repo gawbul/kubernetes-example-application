@@ -110,6 +110,8 @@ kubectl create secret docker-registry ghcr-image-pull-secret --docker-server=htt
 
 ## Run application
 
+**NB**: Requires you login to the remote registry first using for example `mise run docker-login-ghcr`.
+
 ```bash
 skaffold run
 ```
