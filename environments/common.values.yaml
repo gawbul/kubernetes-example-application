@@ -38,15 +38,15 @@ application:
   ingress:
     route:
       enabled: true
+      annotations:
+        traefik.ingress.kubernetes.io/router.tls: "true"
+      labels:
+        app: kubernetes-example-application
       match: "Host(`kubernetes.localhost`) && PathPrefix(`/kubernetes-example-application`)"
       stripPrefixes:
         - /kubernetes-example-application
       tls:
-        secretName: root-ssl-cert
-    tls:
-    - hosts:
-      - kubernetes.localhost
-      secretName: root-ssl-cert
+        secretName: traefik-tls
   resources:
     requests:
       cpu: "250m"

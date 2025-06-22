@@ -39,6 +39,8 @@ spec:
       securityContext:
         {{- .Values.application.podSecurityContext | toYaml | nindent 8 }}
       {{- end }}
+      imagePullSecrets:
+      - name: ghcr-image-pull-secret
       containers:
       - name: example-application
         image: "{{ .Values.global.image.registry }}:{{ .Values.global.image.tag | default .Chart.AppVersion }}"

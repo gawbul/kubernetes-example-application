@@ -112,9 +112,6 @@
                 }
               },
               "additionalProperties": false
-            },
-            "tls": {
-              "type": "array"
             }
           },
           "additionalProperties": true
