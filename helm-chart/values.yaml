@@ -1,0 +1,66 @@
+global:
+  image:
+    registry: ghcr.io/gawbul
+    tag: 0.0.1
+    pullPolicy: Always
+
+application:
+  affinity: {}
+  annotations: {}
+  automountServiceAccountToken: false
+  configuration:
+    env: ""
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop:
+      - NET_RAW
+      - ALL
+  deploymentAnnotations: {}
+  deploymentStrategy:
+    type: RollingUpdate
+  extraEnvironmentVars: {}
+  extraEnvironmentSecrets: {}
+  extraLabels: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  fullnameOverride: ""
+  ingress:
+    route:
+      enabled: false
+      annotations: {}
+      labels: {}
+      match: ""
+      stripPrefixes: []
+      tls: {}
+    tls: []
+  labels: {}
+  nodeSelector: {}
+  podLabels: {}
+  podSecurityContext:
+    fsGroup: 10000
+  replicas: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "250m"
+    limits:
+      memory: "128Mi"
+      cpu: "250m"
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+    portName: ""
+    annotations: {}
+  serviceAccount:
+    create: false
+    name: ""
+    annotations: {}
+  tolerations: []

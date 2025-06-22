@@ -1,0 +1,8 @@
+global:
+  image:
+    tag: 0.0.1
+application:
+  configuration:
+    env: nonprod
+  extraEnvironmentVars:
+    ENVIRONMENT: nonprod

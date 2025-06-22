@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "example-application.fullname" . }}-config
+  namespace: {{.Release.Namespace}}
+  labels:
+    {{- include "example-application.labels" . | nindent 4 }}
+data:
+  env: "{{ .Values.application.configuration.env }}"
+  config.yaml: |
+    env: {{ .Values.application.configuration.env }}

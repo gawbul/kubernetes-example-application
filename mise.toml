@@ -1,0 +1,158 @@
+[tools]
+container-structure-test = "1.19.3"
+cosign = "2.5.2"
+gh = "2.74.2"
+go = "1.24.4"
+helm = "3.18.3"
+helm-diff = "3.12.2"
+helm-docs = "1.14.2"
+helmfile = "1.1.2"
+jq = "1.8.0"
+k9s = "0.50.6"
+kind = "0.29.0"
+kubeconform = "0.7.0"
+kubectl = "1.33.2"
+pre-commit = "4.2.0"
+python = "3.13.5"
+rust = "1.87.0"
+shellcheck = "0.10.0"
+skaffold = "2.16.1"
+slsa-verifier = "2.7.0"
+yq = "4.45.4"
+
+[env]
+DOCKER_REGISTRY = "ghcr.io/gawbul"
+SVC_NAME = "kubernetes-example-application"
+IMAGE_TAG = "0.0.1"
+
+[tasks.pre-commit-run]
+description = "Install and run the pre-commit hooks"
+run = """
+#!/usr/bin/env zsh
+pre-commit install
+pre-commit run --all-files
+"""
+
+[tasks.docker-compose-up]
+description = "Build container and start services using Docker Compose"
+run = """
+#!/usr/bin/env zsh
+docker compose up -d --build --remove-orphans
+"""
+
+[tasks.docker-compose-down]
+description = "Stop all containers using Docker Compose"
+run = """
+#!/usr/bin/env zsh
+docker compose down --remove-orphans
+"""
+
+[tasks.docker-compose-restart]
+description = "Restart all containers using Docker Compose"
+depends = ["docker-compose-down"]
+depends_post = ["docker-compose-up"]
+
+[tasks.build]
+description = "Build the code"
+run = """
+#!/usr/bin/env zsh
+CGO_ENABLED=0 go build -ldflags="-w -s" -v -o kubernetes-example-application .
+"""
+
+[tasks.dev]
+description = "Run the code for development"
+run = """
+#!/usr/bin/env zsh
+go run main.go
+"""
+
+[tasks.test]
+description = "Run full test suite"
+run = """
+#!/usr/bin/env zsh
+echo "No tests specified"
+"""
+
+[tasks.lint]
+description = "Formatting for code files"
+run = """
+#!/usr/bin/env zsh
+echo "No linter specified"
+"""
+
+[tasks.docker-build]
+description = "Build the container using Docker BuildKit"
+run = """
+#!/usr/bin/env zsh
+docker buildx build -t {{env.SVC_NAME}} --platform linux/arm64 --build-arg TARGETOS=linux --output type=docker .
+"""
+
+[tasks.docker-run]
+description = "Run the container using Docker"
+run = """
+#!/usr/bin/env zsh
+docker run -d -t {{env.SVC_NAME}}
+"""
+
+[tasks.docker-stop]
+description = "Stop the container using Docker"
+depends_post = ["docker-remove"]
+run = """
+#!/usr/bin/env zsh
+docker stop $(docker ps -q -a --filter "ancestor={{env.SVC_NAME}}")
+"""
+
+[tasks.docker-remove]
+description = "Remove the container using Docker"
+run = """
+#!/usr/bin/env zsh
+docker rm $(docker ps -q -a --filter 'ancestor={{env.SVC_NAME}}') -f
+"""
+
+[tasks.docker-image-remove]
+description = "Remove the image using Docker"
+run = """
+#!/usr/bin/env zsh
+docker rmi $(docker images -q -a --filter "reference={{env.SVC_NAME}}")
+"""
+
+[tasks.docker-login-ghcr]
+description = "Login to the GitHub Container Registry"
+run = """
+#!/usr/bin/env zsh
+if [[ -z "${GHCR_USERNAME}" ]]; then
+  echo "
+    GHCR_USERNAME environment variable not set.
+  "
+  exit 1
+fi
+if [[ ! $(pbpaste) ]]; then
+  echo "
+    Clipboard is empty.
+    Please be sure to copy your personal access token to the clipboard first
+  "
+  exit 1
+fi
+echo `pbpaste` | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+"""
+
+[tasks.docker-tags-get-ghcr]
+description = "Get tags from the GitHub Container Registry"
+run = """
+#!/usr/bin/env zsh
+gh api "/orgs/gawbul/packages/container/{{env.SVC_NAME}}/versions" | jq -r '.[].metadata.container.tags | select(length > 0)'
+"""
+
+[tasks.docker-tag-ghcr]
+description = "Tag the build with the correct tag for the remote registry"
+run = """
+#!/usr/bin/env zsh
+docker tag ${SVC_NAME}:latest {{env.DOCKER_REGISTRY}}/{{env.SVC_NAME}}:{{env.IMAGE_TAG}}
+"""
+
+[tasks.docker-push-ghcr]
+description = "Push the image to the remote registry"
+run = """
+#!/usr/bin/env zsh
+docker push {{env.DOCKER_REGISTRY}}/{{env.SVC_NAME}}:{{env.IMAGE_TAG}}
+"""

@@ -1,0 +1,45 @@
+# Mac specific
+.DS_Store
+
+# Binaries for programs and plugins
+# These are the compiled executable files.
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+
+# Local binary built from main.go
+# This should match the output file name from your build process.
+# In our Dockerfile, we named it 'main'.
+main
+kubernetes-example-application
+
+# Dependency directory
+# This is used by `go mod vendor`
+vendor/
+
+# Go workspace files (for multi-module workspaces)
+go.work
+go.work.sum
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+
+# Local environment variables
+# It's a security best practice to never commit .env files.
+.env
+
+# Skaffold build files
+build.json
+
+# Mise local toml files
+mise.local.toml

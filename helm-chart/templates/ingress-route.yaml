@@ -1,0 +1,54 @@
+{{- if .Values.application.ingress.route.enabled -}}
+{{- $fullName := include "example-application.fullname" . -}}
+{{- $svcPort := .Values.application.service.port -}}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}-ingress-route
+  namespace: {{.Release.Namespace}}
+  {{- with .Values.application.ingress.route.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- include "example-application.labels" . | nindent 4 }}
+  {{- with .Values.application.ingress.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: {{ .Values.application.ingress.route.match }}
+    middlewares:
+      - name: {{ $fullName }}-strip-prefix
+    services:
+    - name: {{ $fullName }}
+      port: {{ $svcPort }}
+  {{- with .Values.application.ingress.route.tls }}
+  tls:
+    secretName: {{ .secretName }}
+  {{- end}}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-strip-prefix
+  namespace: {{.Release.Namespace}}
+  {{- with .Values.application.ingress.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.application.ingress.route.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- include "example-application.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+  {{- with .Values.application.ingress.route.stripPrefixes }}
+    {{- toYaml . | nindent 6 }}
+  {{- end}}
+{{- end }}

@@ -1,0 +1,22 @@
+# Defines the services that make up your application.
+services:
+  # The name of our service.
+  kubernetes-example-application:
+    # Configuration for the image build process.
+    build:
+      # The build context is the current directory (where the Dockerfile is).
+      context: .
+      # Specifies the name of the Dockerfile.
+      dockerfile: Dockerfile
+      # Passes build-time variables to the Dockerfile.
+      args:
+        # Sets the TARGETOS variable in the Dockerfile to 'linux'.
+        TARGETOS: linux
+        # TARGETARCH is usually inferred automatically by Docker Compose based on your machine,
+        # but you could uncomment and set it to 'amd64' or 'arm64' if needed.
+        # TARGETARCH: amd64
+    # Maps port 8080 on the host machine to port 8080 in the container.
+    ports:
+      - "8080:8080"
+    # Assigns a custom name to the container for easier reference.
+    container_name: kubernetes-example-application
